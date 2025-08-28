@@ -29,15 +29,17 @@ Simulated Virtual Assistant: A hybrid chatbot that answers battery-related quest
 
 # Project Artefacts
 
-Ideation documnent is present in docs folder
+**Novelty and Approach document is present in docs folder**
 
-Technical Documentation: All technical details for this project are docs folder
+**Technical Documentation: All technical details for this project are in src folder as well as docs folder**
 
-Source Code: The complete source code is located in the /src directory of this repository.
+**Scalibility and Business Analysis doc is also present in the doc folder.**
 
-Model Used: The predictive model is advanced_battery_model.tflite, located in the /assets folder. It was custom-trained for this project.
+**Source Code: The complete source code is located in the /src directory of this repository.**
 
-Dataset Used: The model was trained on a synthetically generated dataset that mimics real-world usage patterns. The Python script used to generate this data is available in the samsung_ai.ipynb file in /src folder.
+**Model Used: The predictive model is advanced_battery_model.tflite, located in the /assets folder. It was custom-trained for this project.**
+
+**Dataset Used: The model was trained on a synthetically generated dataset that mimics real-world usage patterns. The Python script used to generate this data is available in the samsung_ai.ipynb file in /src folder.**
 
 # Overview of Technical Implementation
 Our prototype is a native Android application built using Kotlin.
