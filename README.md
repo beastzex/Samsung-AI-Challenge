@@ -1,41 +1,72 @@
-### **Important Instructions**:  
-- Click on *"Use this template"* button and *"Create a new repository"* in your github account for submission.
-<img width="1262" height="93" alt="Screenshot 2025-08-15 at 5 59 49 AM" src="https://github.com/user-attachments/assets/b72d5afd-ba07-4da1-ac05-a373b3168b6a" />
+# Galaxy PowerAI
+A proactive, on-device AI guardian for Android that eliminates battery anxiety. Features predictive battery life, offline navigation, and automated safety alerts. A submission for the Samsung EnnovateX 2025 AI Challenge.
 
-- Add one of the following open source licenses - [MIT](https://opensource.org/licenses/MIT), [Apache 2.0](https://opensource.org/licenses/Apache-2.0) or [BSD 3-Clause](https://opensource.org/licenses/BSD-3-Clause) to your submission repository. 
-- Once your repository is ready for **evaluation** send an email to ennovatex.io@samsung.com with the subject - "AI Challenge Submission - Team name" and the body of the email must contain only the Team Name, Team Leader Name & your GitHub project repository link.
-- All submission project materials outlined below must be added to the github repository and nothing should be attached in the submission email.
-- In case of any query, please feel free to reach out to us at ennovatex.io@samsung.com
-
-#### Evaluation Criteria
-
-| Project Aspect | % |
-| --- | --- |
-| Novelty of Approach | 25% |
-| Technical implementation & Documentation | 25% |
-| UI/UX Design or User Interaction Design | 15% |
-| Ethical Considerations & Scalability | 10% |
-| Demo Video (10 mins max) | 25% |
-
-**-------------------------- Your Project README.md should start from here -----------------------------**
 
 # Samsung EnnovateX 2025 AI Challenge Submission
 
-- **Problem Statement** - *(Must exactly match one of the nine Samsung EnnovateX AI Challenge Problem Statements)*
-- **Team name** - *(As provided during the time of registration)*
-- **Team members (Names)** - *Member 1 Name*, *Member 2 Name*, *Member 3 Name*, *Member 4 Name* 
+- **Problem Statement** - *PS : 6 , "Crafting the Next Generation of Human-AI Interaction on the Edge" *
+- **Team name** - *Detroit*  **Order ID - #15974784**
+- **Team members (Names)** - *Akshat Arya(Team Leader)*, *Aarvi*, *Ketki Gogia*, *Abhishek Yadav* 
 - **Demo Video Link** - *(Upload the Demo video on Youtube as a public or unlisted video and share the link. Google Drive uploads or any other uploads are not allowed.)*
 
+# Key Features
+Hybrid On-Device AI: A powerful combination of a predictive TensorFlow Lite model and a generative "Expert System" that runs 100% offline.
 
-### Project Artefacts
+Predictive Battery Forecasting: Accurately predicts remaining battery life in hours and minutes based on real-time usage.
 
-- **Technical Documentation** - [Docs](docs) *(All technical details must be written in markdown files inside the docs folder in the repo)*
-- **Source Code** - [Source](src) *(All source code must be added to the src folder in the repo. The code must be capable of being successfully installed/executed and must run consistently on the intended platforms.)*
-- **Models Used** - *(Hugging Face links to all models used in the project. You are permitted to use open weight models.)*
-- **Models Published** - *(In case you have developed a model as a part of your solution, kindly upload it on Hugging Face under appropriate open source license and add the link here.)*
-- **Datasets Used** - *(Links to all datasets used in the project. You are permitted to use publicly available datasets under licenses like Creative Commons, Open Data Commons, or equivalent.)*
-- **Datasets Published** - *(Links to all datasets created for the project and published on Hugging Face. You are allowed to publish any synthetic or proprietary dataset used in their project, but will be responsible for any legal compliance and permission for the same. The dataset can be published under Creative Commons, Open Data Commons, or equivalent license.)*
+Voice-Enabled AI Insights: Delivers smart, contextual, and spoken advice about your battery's health and status.
 
-### Attribution 
+Interactive Offline Travel Guardian: A fully offline map and routing system that generates AI-powered battery usage plans to ensure you reach your destination safely.
 
-In case this project is built on top of an existing open source project, please provide the original project link here. Also, mention what new features were developed. Failing to attribute the source projects may lead to disqualification during the time of evaluation.
+Complete Automated Safety Net:
+
+Automatically sends an Emergency SMS with your location to a trusted contact when the battery is critical.
+
+Automatically switches to a minimalist Emergency Reserve Mode at very low battery levels.
+
+Simulated Virtual Assistant: A hybrid chatbot that answers battery-related questions offline and general knowledge questions online.
+
+
+# Project Artefacts
+
+Ideation documnent is present in docs folder
+
+Technical Documentation: All technical details for this project are docs folder
+
+Source Code: The complete source code is located in the /src directory of this repository.
+
+Model Used: The predictive model is advanced_battery_model.tflite, located in the /assets folder. It was custom-trained for this project.
+
+Dataset Used: The model was trained on a synthetically generated dataset that mimics real-world usage patterns. The Python script used to generate this data is available in the samsung_ai.ipynb file in /src folder.
+
+# Overview of Technical Implementation
+Our prototype is a native Android application built using Kotlin.
+
+AI Engine: The core of our project is a Hybrid AI System.
+
+The Predictive Brain is a Multivariate Time-Series Forecasting Model using a Dense Neural Network, built with TensorFlow and deployed with TensorFlow Lite.
+
+The Generative Brain is a Kotlin-based Expert System (AIInsightGenerator.kt) that uses rule-based logic to generate human-readable text and voice output.
+
+Real-time Monitoring: The app's nervous system is a BroadcastReceiver that listens for the system's ACTION_BATTERY_CHANGED intent, allowing the app to react instantly to any change in battery state.
+
+Offline Mapping & Routing: The Travel Guardian feature is powered by GraphHopper (offline routing) and osmdroid (offline maps). The heavy task of loading the map data is offloaded to a background thread to keep the UI smooth and responsive.
+
+Data Persistence: The app uses Android's SharedPreferences to securely store the user's chosen emergency contact number.
+
+Voice Interaction: The app uses the native Android TextToSpeech (TTS) engine to provide offline, voice-enabled insights.
+
+# Our Journey: Building Galaxy PowerAI
+We've all felt it: that sinking feeling when you're out, navigating a new city, and you see your phone's battery hit 10%. In that moment, your powerful smartphone becomes a source of anxiety. That's the problem we set out to solve. We didn't want to just build another battery saver; we wanted to create an intelligent guardian that works with you, keeping you safe and connected when it matters most.
+
+Our Philosophy: An AI That You Can Trust
+From day one, we committed to two core principles that guided every technical decision:
+
+On-Device First: In an age of constant cloud connectivity, we made a deliberate choice. Our guardian had to work anywhere, anytime, with or without an internet connection. This meant all of our AI processing had to happen on the edge. This approach guarantees 100% user privacy and makes the app incredibly fast and reliable.
+
+A Hybrid AI Approach: We knew a single AI model wasn't enough. A true assistant needs to be both a brilliant mathematician and a great communicator. So, we built a Hybrid AI System with two distinct brains.
+
+Meet the Brains of the Operation
+The Forecaster (Our Predictive Brain): At the heart of our app is a custom-built TensorFlow Lite model. We taught it to be a master forecaster. It doesn't just look at the battery percentage; it analyzes a live sequence of four different data points—Battery Level, Screen Brightness, Network Status, and Charging State—to understand the context of how you're using your phone and predict what will happen next.
+
+The Communicator (Our Generative Brain): Numbers are meaningless without good communication. That's why we built a "Generative Brain" right into the app with Kotlin, which we call our Expert System (AIInsightGenerator.kt). This is the AI's voice and personality. It takes the complex predictions from the Forecaster and translates them into simple, helpful advice, proactive travel plans, and friendly chat responses.
