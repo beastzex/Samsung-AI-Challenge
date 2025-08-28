@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackgroundDark"
+    android:orientation="vertical"
+    android:padding="24dp"
+    tools:context=".EmergencyContactActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Emergency Contact"
+        android:textColor="@color/white"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="This contact will receive an SMS alert when your battery is critically low."
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/tvCurrentContact"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        tools:text="Currently saved: 123-456-7890" />
+
+    <EditText
+        android:id="@+id/etContactNumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:autofillHints="phone"
+        android:hint="Enter phone number"
+        android:inputType="phone"
+        android:textColor="@color/white"
+        android:textColorHint="@color/colorTextSecondary" />
+
+    <Button
+        android:id="@+id/btnSaveContact"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="16dp"
+        android:text="Save Contact" />
+
+</LinearLayout>
