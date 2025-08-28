@@ -55,3 +55,61 @@ Voice Interaction (TextToSpeech): The app uses the native Android TTS engine to 
 
 UI/UX: The user interface is built with modern Android components, including CardView for a clean, elevated look and RecyclerView for displaying the dynamic list of messages in the chat interface. The design is dark-themed and high-contrast for readability and reduced power consumption on OLED screens.
 
+## 5. User Guide
+
+User Guide:
+Welcome to Galaxy PowerAI! Here’s a quick guide to using your intelligent battery guardian.
+
+  1. The Main Dashboard
+When you open the app, you are greeted with your main dashboard. This screen gives you an at-a-glance view of your phone's status:
+
+Live Battery Status: See your current battery percentage and the AI's real-time prediction of how long it will last.
+
+AI Insight: Below the prediction, the AI provides a smart, contextual insight about your battery's health, which is also spoken aloud.
+
+High Usage Apps: See a list of the apps that have been using the most power in the last hour.
+
+Quick Actions: Use the buttons at the bottom to access the app's powerful features.
+
+  2. Using the Travel Guardian
+This is your intelligent, offline navigation tool.
+
+Tap the "Travel Guardian Mode" button.
+
+The map screen will open. Wait a moment for the toast message "Map ready!" to appear as the offline map loads in the background.
+
+In the search box at the top, type your destination (e.g., "Qutub Minar, Delhi") and tap "Find Route".
+
+The app will find your current location, calculate the best offline route, and draw it on the map. You will then see and hear the AI's custom Travel Plan, advising you on your battery usage for the trip.
+
+  3. Chatting with the Virtual Assistant
+You can ask your on-device AI assistant questions.
+
+Tap the "Virtual Assistant" button.
+
+In the chat screen, type your question in the message box and tap "Send".
+
+Try asking different types of questions:
+
+On-Device Query: Ask, "What is my battery health?" or "How long will my battery last?" for an instant, offline answer.
+
+Hybrid Query: Ask, "Tell me a fact" or any other general knowledge question to see the hybrid assistant fetch information from the internet.
+
+  4. Setting Up Your Emergency Contact
+This is a critical safety feature that you should set up first.
+
+From the main dashboard, tap the "Emergency Contacts" button.
+
+On the new screen, enter the phone number of a trusted contact.
+
+Tap "Save Contact".
+
+This number will now automatically receive an SMS with your last known location if your phone's battery drops to a critical level.
+
+  5. Automatic Safety Features
+Two features work automatically in the background to protect you:
+
+Emergency SMS: When your battery drops to 5% and is not charging, the app automatically sends the alert to your saved emergency contact.
+
+Emergency Reserve Mode: If the battery drops even further to 3%, the app will automatically launch a minimalist, high-contrast screen with only essential functions (Phone, Messages, Maps) to preserve the last bit of power.
+
