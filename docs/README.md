@@ -1,13 +1,10 @@
-# Technical Documentation
+# Project Documentation
+This directory contains the detailed documentation for the Galaxy PowerAI project, as required for the Samsung EnnovateX 2025 AI Challenge submission.
 
-Feel free to add any number of markdown files in this folder that can help us better understand your solution.
-You can include the following (not an exhaustive list, feel free to add more):
-- Your approach to solve this problem and what makes it unique
-- Technical Stack - List of OSS libraries/projects used along with their links
-- The technical architecture of your solution
-- Implementation details
-- Installation instructions
-- User guide
-- Salient features of the project
+## Document Index
+### Technical Implementation: A deep dive into the project's architecture, tech stack, libraries, and the implementation of core features.
 
-Note: Kindly add screenshots wherever possible.
+### Novelty of Approach: An explanation of what makes this project innovative, focusing on the hybrid on-device AI, the proactive Human-AI paradigm, and context-aware features.
+
+### Scalability and Business Analysis: A business case outlining the market opportunity, feasibility, scalability, and the potential business impact for Samsung.
+
