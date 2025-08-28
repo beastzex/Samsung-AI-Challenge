@@ -5,7 +5,7 @@ A proactive, on-device AI guardian for Android that eliminates battery anxiety. 
 # Samsung EnnovateX 2025 AI Challenge Submission
 
 - **Problem Statement** - *PS : 6 , "Crafting the Next Generation of Human-AI Interaction on the Edge" *
-- **Team name** - *Detroit*  **Order ID - #15974784**
+- **Team name** - *ketki akshat aarvi abhishek*  **Order ID - #15974784**
 - **Team members (Names)** - *Akshat Arya(Team Leader)*, *Aarvi*, *Ketki Gogia*, *Abhishek Yadav* 
 - **Demo Video Link** - *(Upload the Demo video on Youtube as a public or unlisted video and share the link. Google Drive uploads or any other uploads are not allowed.)*
 
