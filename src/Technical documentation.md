@@ -113,3 +113,48 @@ Emergency SMS: When your battery drops to 5% and is not charging, the app automa
 
 Emergency Reserve Mode: If the battery drops even further to 3%, the app will automatically launch a minimalist, high-contrast screen with only essential functions (Phone, Messages, Maps) to preserve the last bit of power.
 
+## 6. Installation Instructions 
+
+To build and run this project from the source code, please follow these steps.
+
+1. Prerequisites
+
+Android Studio (latest stable version recommended)
+
+An Android Emulator or physical device running API 26 (Oreo) or higher.
+
+2. Clone the Repository
+   
+Open your terminal and clone this GitHub repository:
+
+ // use command 
+ git clone [Your Repository URL]
+
+3. Open in Android Studio
+
+Launch Android Studio.
+
+Select "Open an existing project" and navigate to the folder you just cloned.
+
+Allow Android Studio to sync the Gradle dependencies. This may take a few minutes.
+
+4. Download the Offline Map File
+   
+The offline routing feature requires a map data file.
+
+Download the Delhi.osm.pbf file from this direct link: https://download.bbbike.org/osm/bbbike/Delhi/Delhi.osm.pbf
+
+In the Android Studio Project panel, navigate to app/src/main/assets/.
+
+Create a new directory inside assets and name it maps.
+
+Place the downloaded Delhi.osm.pbf file inside this new app/src/main/assets/maps/ directory.
+
+5. Build and Run
+
+Once the Gradle sync is complete and the map file is in place, you can run the app.
+
+Select your target device from the dropdown menu at the top.
+
+Click the green "Run 'app'" (▶️) button.
+
