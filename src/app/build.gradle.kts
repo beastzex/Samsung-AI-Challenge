@@ -54,11 +54,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
 
-        // For offline maps
+
     implementation("org.osmdroid:osmdroid-android:6.1.11")
-        // For offline routing
     // ADD THIS STABLE VERSION
-    implementation("com.graphhopper:graphhopper-core:5.3")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
 // Add this for the CardView used in the new buttons
     implementation("androidx.cardview:cardview:1.0.0")

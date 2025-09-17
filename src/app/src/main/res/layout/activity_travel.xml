@@ -8,7 +8,7 @@
     tools:context=".TravelActivity">
 
     <org.osmdroid.views.MapView
-        android:id="@+id/map"
+        android:id="@+id/map_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
@@ -36,16 +36,25 @@
                 android:textColor="@color/white"
                 android:textColorHint="@color/colorTextSecondary" />
 
+            <EditText
+                android:id="@+id/etBatteryBudget"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:hint="%"
+                android:inputType="number"
+                android:textColor="@color/white"
+                android:textColorHint="@color/colorTextSecondary"
+                android:textAlignment="center"
+                android:maxLength="3"/>
+
             <Button
                 android:id="@+id/btnFindRoute"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Find Route" />
-
+                android:text="Route" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
-
 
     <TextView
         android:id="@+id/tvTravelPlan"
@@ -56,7 +65,7 @@
         android:padding="16dp"
         android:textColor="#E1E1E1"
         android:textSize="14sp"
-        android:text="Enter a destination to get your AI Travel Plan."
+        android:text="Enter a destination and a battery budget, then tap 'Route'."
         android:visibility="visible"/>
 
 </RelativeLayout>

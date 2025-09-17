@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/colorBackgroundDark"
+    android:padding="24dp"
+    tools:context=".BatteryDetailsActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Battery Health Details"
+        android:textColor="@color/white"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvHealthStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:textColor="@color/colorTextPrimary"
+        android:textSize="18sp"
+        tools:text="Health Status: Good" />
+
+    <TextView
+        android:id="@+id/tvBatteryTech"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textColor="@color/colorTextPrimary"
+        android:textSize="18sp"
+        tools:text="Technology: Li-ion" />
+
+    <TextView
+        android:id="@+id/tvBatteryTemp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textColor="@color/colorTextPrimary"
+        android:textSize="18sp"
+        tools:text="Temperature: 30.5 °C" />
+
+    <TextView
+        android:id="@+id/tvBatteryVoltage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textColor="@color/colorTextPrimary"
+        android:textSize="18sp"
+        tools:text="Voltage: 4.1 V" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="AI Health Insight"
+        android:textColor="@color/colorPrimaryBlue"
+        android:textSize="22sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tvHealthInsight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="16sp"
+        tools:text="To maximize battery lifespan, try to keep your charge between 20% and 80%." />
+
+</LinearLayout>

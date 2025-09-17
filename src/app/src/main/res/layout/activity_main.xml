@@ -78,6 +78,23 @@
                     android:text="Insight: Analyzing..."
                     android:textColor="@color/colorTextSecondary"
                     android:textSize="12sp" />
+                <TextView
+                    android:id="@+id/tvInsight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Insight: Analyzing..."
+                    android:textColor="@color/colorTextSecondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvAccuracy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Prediction Accuracy: Calibrating..."
+                    android:textColor="@color/colorTextSecondary"
+                    android:textSize="12sp" />
 
             </LinearLayout>
         </LinearLayout>
@@ -155,6 +172,16 @@
         android:backgroundTint="#333333"
         android:padding="14dp"
         android:text="Emergency Contacts"
+        android:textColor="@color/colorPrimaryBlue" />
+
+    <Button
+        android:id="@+id/btnBatteryDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="#333333"
+        android:padding="14dp"
+        android:text="View Battery Health Details"
         android:textColor="@color/colorPrimaryBlue" />
 
 </LinearLayout>

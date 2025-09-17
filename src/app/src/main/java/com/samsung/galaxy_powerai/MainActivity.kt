@@ -1,7 +1,6 @@
 package com.samsung.galaxy_powerai
 
 // All import statements must be at the top of the file
-
 import android.Manifest
 import android.app.AppOpsManager
 import android.app.usage.UsageStatsManager
@@ -39,10 +38,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvTimePrediction: TextView
     private lateinit var tvAppUsage: TextView
     private lateinit var tvInsight: TextView
+    private lateinit var tvAccuracy: TextView
     private lateinit var btnOptimize: Button
     private lateinit var btnTravelMode: Button
     private lateinit var btnChat: Button
     private lateinit var btnEmergencyContacts: Button
+    private lateinit var btnBatteryDetails: Button // NEW PROPERTY
 
     // --- AI Model Properties ---
     private lateinit var tflite: Interpreter
@@ -50,6 +51,7 @@ class MainActivity : AppCompatActivity() {
     private val batteryDataHistory = mutableListOf<Float>()
     private val HISTORY_SIZE = 10
     private var isCharging = false
+    private var predictionCount = 0
 
     // --- Voice Engine Properties ---
     private lateinit var tts: TextToSpeech
@@ -64,15 +66,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Find Views
         tvBatteryLevel = findViewById(R.id.tvBatteryLevel)
         tvTimePrediction = findViewById(R.id.tvTimePrediction)
         tvAppUsage = findViewById(R.id.tvAppUsage)
         tvInsight = findViewById(R.id.tvInsight)
+        tvAccuracy = findViewById(R.id.tvAccuracy)
         btnOptimize = findViewById(R.id.btnOptimize)
         btnTravelMode = findViewById(R.id.btnTravelMode)
         btnChat = findViewById(R.id.btnChat)
         btnEmergencyContacts = findViewById(R.id.btnEmergencyContacts)
+        btnBatteryDetails = findViewById(R.id.btnBatteryDetails) // NEW FINDVIEWBYID
 
+
+        // Set Click Listeners
         btnOptimize.setOnClickListener { openSamsungBatterySettings() }
         btnTravelMode.setOnClickListener { startActivity(Intent(this, TravelActivity::class.java)) }
         btnChat.setOnClickListener {
@@ -86,17 +93,20 @@ class MainActivity : AppCompatActivity() {
         btnEmergencyContacts.setOnClickListener {
             startActivity(Intent(this, EmergencyContactActivity::class.java))
         }
-
-        tflite = Interpreter(tfliteModel)
-
-        tts = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                val result = tts.setLanguage(Locale.US)
-                isTtsInitialized = result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED
-            }
+        // NEW CLICK LISTENER
+        btnBatteryDetails.setOnClickListener {
+            startActivity(Intent(this, BatteryDetailsActivity::class.java))
         }
 
+
+        // Initializations
+        tflite = Interpreter(tfliteModel)
+        initializeTts()
         requestAppPermissions()
+
+        val prefs = getSharedPreferences("PowerAIPrefs", Context.MODE_PRIVATE)
+        predictionCount = prefs.getInt("PREDICTION_COUNT", 0)
+        updateAccuracyText()
     }
 
     private val batteryReceiver = object : BroadcastReceiver() {
@@ -106,43 +116,45 @@ class MainActivity : AppCompatActivity() {
                 val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
                 val batteryPct = level * 100 / scale.toFloat()
                 tvBatteryLevel.text = "${batteryPct.toInt()}%"
-
                 val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
                 isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
-
                 val healthInt = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)
                 val health = when (healthInt) {
                     BatteryManager.BATTERY_HEALTH_GOOD -> "Good"
                     BatteryManager.BATTERY_HEALTH_OVERHEAT -> "Overheating"
                     else -> "OK"
                 }
-                val insight = AIInsightGenerator.getBatteryStatusInsight(health, batteryPct.toInt())
+
+                val insight = AIInsightGenerator.getDetailedBatteryInsight(health, batteryPct.toInt(), isCharging, tvAppUsage.text.toString())
                 tvInsight.text = insight
                 speak(insight)
 
-                if (batteryPct <= 5.0f && !isCharging && !emergencySmsSent) {
-                    val prefs = context?.getSharedPreferences("PowerAIPrefs", Context.MODE_PRIVATE)
-                    val emergencyContact = prefs?.getString("EMERGENCY_CONTACT", null)
-                    if (emergencyContact != null) {
-                        val message = "Alert: My phone battery is critically low and may turn off soon."
-                        sendEmergencySms(emergencyContact, message)
-                        emergencySmsSent = true
+                // Trigger Safety Features
+                if (batteryPct < 15.0f && !isCharging) {
+                    if (!emergencyModeLaunched) {
+                        val emergencyIntent = Intent(context, EmergencyActivity::class.java)
+                        emergencyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        emergencyIntent.putExtra("BATTERY_LEVEL", batteryPct.toInt())
+                        context?.startActivity(emergencyIntent)
+                        emergencyModeLaunched = true
+                    }
+                    if (!emergencySmsSent) {
+                        val prefs = context?.getSharedPreferences("PowerAIPrefs", Context.MODE_PRIVATE)
+                        val emergencyContacts = prefs?.getStringSet("EMERGENCY_CONTACTS", null)
+                        if (!emergencyContacts.isNullOrEmpty()) {
+                            val message = "Alert: My phone battery is critically low at ${batteryPct.toInt()}% and may turn off soon."
+                            emergencyContacts.forEach { contact -> sendEmergencySms(contact, message) }
+                            emergencySmsSent = true
+                        }
                     }
                 }
 
-                if (batteryPct <= 3.0f && !isCharging && !emergencyModeLaunched) {
-                    val emergencyIntent = Intent(context, EmergencyActivity::class.java)
-                    emergencyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    emergencyIntent.putExtra("BATTERY_LEVEL", batteryPct.toInt())
-                    context?.startActivity(emergencyIntent)
-                    emergencyModeLaunched = true
-                }
-
-                if (batteryPct > 10.0f) {
+                if (batteryPct > 20.0f) {
                     emergencySmsSent = false
                     emergencyModeLaunched = false
                 }
 
+                // AI Prediction Logic
                 if (batteryDataHistory.isEmpty() || batteryDataHistory.last() != batteryPct) {
                     batteryDataHistory.add(batteryPct)
                 }
@@ -151,7 +163,88 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (batteryDataHistory.size == HISTORY_SIZE) {
                     runPrediction()
+                } else {
+                    tvTimePrediction.text = "AI is Calibrating..."
                 }
+            }
+        }
+    }
+
+    private fun runPrediction() {
+        if (batteryDataHistory.size < HISTORY_SIZE) return
+
+        predictionCount++
+        val prefs = getSharedPreferences("PowerAIPrefs", Context.MODE_PRIVATE)
+        with(prefs.edit()) {
+            putInt("PREDICTION_COUNT", predictionCount)
+            apply()
+        }
+        updateAccuracyText()
+
+        val currentBrightness = getCurrentBrightness().toFloat()
+        val currentNetwork = getNetworkStatus().toFloat()
+        val currentChargingStatus = if (isCharging) 1.0f else 0.0f
+        val normBrightness = currentBrightness / 255.0f
+        val normNetwork = currentNetwork / 2.0f
+
+        val inputBuffer = ByteBuffer.allocateDirect(1 * HISTORY_SIZE * 4 * 4).apply {
+            order(ByteOrder.nativeOrder())
+            for (i in 0 until HISTORY_SIZE) {
+                putFloat(batteryDataHistory[i] / 100.0f)
+                putFloat(normBrightness)
+                putFloat(normNetwork)
+                putFloat(currentChargingStatus)
+            }
+        }
+
+        val outputBuffer = ByteBuffer.allocateDirect(1 * 1 * 4).apply {
+            order(ByteOrder.nativeOrder())
+        }
+        tflite.run(inputBuffer, outputBuffer)
+
+        outputBuffer.rewind()
+        val predictedValue = outputBuffer.float * 100.0f
+        val lastKnownLevel = batteryDataHistory.last()
+        var dischargeRate = lastKnownLevel - predictedValue
+
+        if (!isCharging && dischargeRate > 0 && dischargeRate < 0.1) {
+            dischargeRate = 0.1f
+        }
+
+        if (isCharging) {
+            tvTimePrediction.text = "AI Prediction: Charging"
+        } else if (dischargeRate > 0.001) {
+            val minutesRemaining = (lastKnownLevel / dischargeRate).toInt()
+            if (minutesRemaining > 0) {
+                val hours = minutesRemaining / 60
+                val minutes = minutesRemaining % 60
+                tvTimePrediction.text = "AI Prediction: ${hours}h ${minutes}m"
+            } else {
+                tvTimePrediction.text = "AI Prediction: Low"
+            }
+        } else {
+            if (predictionCount < 5) {
+                tvTimePrediction.text = "AI is learning your usage..."
+            } else {
+                tvTimePrediction.text = "AI Prediction: Stable"
+            }
+        }
+    }
+
+    private fun updateAccuracyText() {
+        val accuracy = when {
+            predictionCount < 5 -> "Low (Calibrating)"
+            predictionCount in 5..20 -> "Medium (Learning)"
+            else -> "High (Optimized)"
+        }
+        tvAccuracy.text = "Prediction Accuracy: $accuracy"
+    }
+
+    private fun initializeTts() {
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                val result = tts.setLanguage(Locale.US)
+                isTtsInitialized = result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED
             }
         }
     }
@@ -208,19 +301,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun openSamsungBatterySettings() {
         try {
-            // This is the specific intent to open Samsung's battery optimization screen
             val intent = Intent()
             intent.setClassName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity")
             startActivity(intent)
         } catch (e: Exception) {
-            // A highly reliable fallback: open this app's own "App Info" screen in settings.
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-
-            // --- THIS IS THE CORRECTED LINE ---
-            // We specify the full path to Android's Uri class to remove the ambiguity
-            val uri = android.net.Uri.fromParts("package", packageName, null)
-            // ------------------------------------
-
+            val uri = Uri.fromParts("package", packageName, null)
             intent.data = uri
             startActivity(intent)
         }
@@ -301,50 +387,5 @@ class MainActivity : AppCompatActivity() {
         val startOffset = fileDescriptor.startOffset
         val declaredLength = fileDescriptor.declaredLength
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
-    }
-
-    private fun runPrediction() {
-        if (batteryDataHistory.size < HISTORY_SIZE) return
-
-        val currentBrightness = getCurrentBrightness().toFloat()
-        val currentNetwork = getNetworkStatus().toFloat()
-        val currentChargingStatus = if (isCharging) 1.0f else 0.0f
-        val normBrightness = currentBrightness / 255.0f
-        val normNetwork = currentNetwork / 2.0f
-
-        val inputBuffer = ByteBuffer.allocateDirect(1 * HISTORY_SIZE * 4 * 4).apply {
-            order(ByteOrder.nativeOrder())
-            for (i in 0 until HISTORY_SIZE) {
-                putFloat(batteryDataHistory[i] / 100.0f)
-                putFloat(normBrightness)
-                putFloat(normNetwork)
-                putFloat(currentChargingStatus)
-            }
-        }
-
-        val outputBuffer = ByteBuffer.allocateDirect(1 * 1 * 4).apply {
-            order(ByteOrder.nativeOrder())
-        }
-        tflite.run(inputBuffer, outputBuffer)
-
-        outputBuffer.rewind()
-        val predictedValue = outputBuffer.float * 100.0f
-        val lastKnownLevel = batteryDataHistory.last()
-        var dischargeRate = lastKnownLevel - predictedValue
-
-        if (!isCharging && dischargeRate > 0 && dischargeRate < 0.1) {
-            dischargeRate = 0.1f
-        }
-
-        if (isCharging) {
-            tvTimePrediction.text = "AI Prediction: Charging"
-        } else if (dischargeRate > 0.001) {
-            val minutesRemaining = (lastKnownLevel / dischargeRate).toInt()
-            val hours = minutesRemaining / 60
-            val minutes = minutesRemaining % 60
-            tvTimePrediction.text = "AI Prediction: ${hours}h ${minutes}m"
-        } else {
-            tvTimePrediction.text = "AI Prediction: Stable"
-        }
     }
 }

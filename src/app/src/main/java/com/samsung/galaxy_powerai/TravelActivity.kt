@@ -15,38 +15,32 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.LocationServices
-import com.graphhopper.GHRequest
-import com.graphhopper.GraphHopper
-import com.graphhopper.config.Profile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Polyline
-import java.io.File
-import java.util.Locale
-import kotlin.concurrent.thread
+import java.util.*
+import android.util.Log
 
 class TravelActivity : AppCompatActivity() {
 
-    // --- UI and Map Properties ---
     private lateinit var mapView: MapView
     private lateinit var tvTravelPlan: TextView
     private lateinit var etDestination: EditText
+    private lateinit var etBatteryBudget: EditText
     private lateinit var btnFindRoute: Button
-
-    // --- AI and Voice Properties ---
     private lateinit var tts: TextToSpeech
     private var isTtsInitialized = false
-
-    // --- Routing Engine Properties ---
-    private var hopper: GraphHopper? = null
-    private var isRoutingEngineReady = false
     private var currentRoute: Polyline? = null
-
-    // --- NEW: Define the valid bounds for our Delhi map ---
-    private val delhiBounds = com.graphhopper.util.shapes.BBox(76.8, 77.4, 28.4, 28.9) // MinLon, MaxLon, MinLat, MaxLat
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,22 +48,22 @@ class TravelActivity : AppCompatActivity() {
 
         Configuration.getInstance().load(applicationContext, getSharedPreferences("osmdroid", Context.MODE_PRIVATE))
 
-        mapView = findViewById(R.id.map)
+        mapView = findViewById(R.id.map_view)
         tvTravelPlan = findViewById(R.id.tvTravelPlan)
         etDestination = findViewById(R.id.etDestination)
+        etBatteryBudget = findViewById(R.id.etBatteryBudget)
         btnFindRoute = findViewById(R.id.btnFindRoute)
 
         initializeTts()
         setupMapView()
-        initializeGraphHopper()
 
-        btnFindRoute.isEnabled = false // Disable button until engine is ready
         btnFindRoute.setOnClickListener {
             val destination = etDestination.text.toString()
-            if (destination.isNotBlank()) {
-                calculateRouteToDestination(destination)
+            val budget = etBatteryBudget.text.toString().toIntOrNull()
+            if (destination.isNotBlank() && budget != null) {
+                calculateRouteToDestination(destination, budget)
             } else {
-                Toast.makeText(this, "Please enter a destination", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter a destination and budget", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -91,143 +85,90 @@ class TravelActivity : AppCompatActivity() {
         }
     }
 
-    private fun initializeGraphHopper() {
-        Toast.makeText(this, "Loading offline map data...", Toast.LENGTH_SHORT).show()
-        thread(start = true) {
-            try {
-                val ghDir = File(filesDir, "graphhopper")
-                if (!ghDir.exists()) ghDir.mkdir()
-                val mapFile = File(ghDir, "NewDelhi.osm.pbf")
-                if (!mapFile.exists()) {
-                    assets.open("maps/NewDelhi.osm.pbf").use { input ->
-                        mapFile.outputStream().use { output ->
-                            input.copyTo(output)
-                        }
-                    }
-                }
-
-                hopper = GraphHopper().apply {
-                    setOSMFile(mapFile.absolutePath)
-                    setGraphHopperLocation(ghDir.absolutePath)
-                    setProfiles(Profile("car").setVehicle("car").setWeighting("fastest"))
-                    importOrLoad()
-                }
-                isRoutingEngineReady = true
-
-                runOnUiThread {
-                    Toast.makeText(this, "Map ready! Calculating demo route.", Toast.LENGTH_SHORT).show()
-                    btnFindRoute.isEnabled = true // Enable the button now
-                    calculateDemoRoute() // Automatically run the demo route
-                }
-
-            } catch (e: Exception) {
-                runOnUiThread {
-                    Toast.makeText(this, "Error loading map: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
-
-    // Function to calculate a hardcoded route to demonstrate the feature works
-    private fun calculateDemoRoute() {
-        val start = GeoPoint(28.6129, 77.2295) // India Gate
-        val end = GeoPoint(28.6562, 77.2410)   // Red Fort
-        calculateRoute(start, end)
-    }
-
-    // This new function handles the entire flow for a user-defined destination
-    // This NEW function hardcodes the start location to prevent emulator GPS bugs
-    private fun calculateRouteToDestination(destinationAddress: String) {
-        if (!isRoutingEngineReady || hopper == null) {
-            Toast.makeText(this, "Routing engine is not ready yet.", Toast.LENGTH_SHORT).show()
+    private fun calculateRouteToDestination(destinationAddress: String, budget: Int) {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Location permission not granted", Toast.LENGTH_SHORT).show()
             return
         }
+        fusedLocationClient.lastLocation.addOnSuccessListener { startLocation: Location? ->
+            if (startLocation == null) {
+                Toast.makeText(this, "Could not get current location.", Toast.LENGTH_SHORT).show()
+                return@addOnSuccessListener
+            }
 
-        // --- THE FIX ---
-        // We will now use a reliable, hardcoded start point inside Delhi
-        val startPoint = GeoPoint(28.6129, 77.2295) // India Gate
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val geocoder = Geocoder(this@TravelActivity, Locale.getDefault())
+                    val endAddresses = geocoder.getFromLocationName(destinationAddress, 1)
 
-        // The rest of the logic runs on a background thread
-        thread {
-            val geocoder = Geocoder(this, Locale.getDefault())
-            try {
-                // Step 1: Convert the destination address to coordinates (Geocoding)
-                val addresses = geocoder.getFromLocationName(destinationAddress, 1)
-                if (addresses != null && addresses.isNotEmpty()) {
-                    val endAddress = addresses[0]
-                    val endPoint = GeoPoint(endAddress.latitude, endAddress.longitude)
+                    if (endAddresses.isNullOrEmpty()) {
+                        withContext(Dispatchers.Main) { Toast.makeText(this@TravelActivity, "Destination not found.", Toast.LENGTH_SHORT).show() }
+                        return@launch
+                    }
 
-                    // Step 2: Calculate the route
-                    val request = GHRequest(startPoint.latitude, startPoint.longitude, endPoint.latitude, endPoint.longitude)
-                        .setProfile("car")
-                    val response = hopper!!.route(request)
+                    val startPoint = GeoPoint(startLocation.latitude, startLocation.longitude)
+                    val endPoint = GeoPoint(endAddresses[0].latitude, endAddresses[0].longitude)
 
-                    // Step 3: Display the result on the main thread
-                    runOnUiThread {
-                        if (response.hasErrors()) {
-                            Toast.makeText(this, response.errors.first().message, Toast.LENGTH_LONG).show()
-                        } else {
-                            val path = response.best
-                            drawRoute(path)
+                    // --- NETWORK CALL TO OPENROUTESERVICE ---
+                    val client = OkHttpClient()
+                    val apiKey = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjYwYWZiNDg1MTBhOTQxZjc5Y2I0NzBlMWIzMjRiYTUxIiwiaCI6Im11cm11cjY0In0=" // PASTE YOUR KEY HERE
+                    val url = "https://api.openrouteservice.org/v2/directions/driving-car" +
+                            "?api_key=$apiKey" +
+                            "&start=${startPoint.longitude},${startPoint.latitude}" +
+                            "&end=${endPoint.longitude},${endPoint.latitude}"
+                    val request = Request.Builder().url(url).build()
+                    val response = client.newCall(request).execute()
+                    val responseBody = response.body?.string()
+                    // ------------------------------------------
 
-                            val travelTimeMinutes = (path.time / 1000 / 60).toInt()
-                            val distanceKm = (path.distance / 1000).toInt()
-                            val currentBattery = 63 // Placeholder
-                            val plan = AIInsightGenerator.generateUsagePlan(travelTimeMinutes, currentBattery, distanceKm)
+                    if (response.isSuccessful && responseBody != null) {
+                        // --- Parse the JSON Response (CORRECTED) ---
+                        val json = JSONObject(responseBody)
+                        val features = json.getJSONArray("features")
+                        val properties = features.getJSONObject(0).getJSONObject("properties")
+                        // The "summary" is an object INSIDE the "properties" object
+                        val summary = properties.getJSONObject("summary") // <-- Corrected
+                        val durationSeconds = summary.getDouble("duration")
+                        val distanceMeters = summary.getDouble("distance")
+                        // Get the route coordinates from the "geometry"
+                        val coordinates = features.getJSONObject(0).getJSONObject("geometry").getJSONArray("coordinates")
 
+                        val travelTimeMinutes = (durationSeconds / 60).toInt()
+                        val distanceKm = (distanceMeters / 1000).toInt()
+                        val currentBattery = 63 // Placeholder
+
+                        val plan = AIInsightGenerator.generateBatteryBudgetPlan(travelTimeMinutes, currentBattery, budget)
+
+                        val routePoints = mutableListOf<GeoPoint>()
+                        for (i in 0 until coordinates.length()) {
+                            val coord = coordinates.getJSONArray(i)
+                            routePoints.add(GeoPoint(coord.getDouble(1), coord.getDouble(0)))
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            drawRoute(routePoints)
                             tvTravelPlan.text = plan
                             tvTravelPlan.visibility = View.VISIBLE
                             speak(plan)
                         }
                     }
-                } else {
-                    runOnUiThread { Toast.makeText(this, "Destination not found.", Toast.LENGTH_SHORT).show() }
-                }
-            } catch (e: Exception) {
-                runOnUiThread { Toast.makeText(this, "Address lookup failed. Check internet.", Toast.LENGTH_SHORT).show() }
-            }
-        }
-    }
-
-    // A single, reusable function to calculate and display any route
-    private fun calculateRoute(startPoint: GeoPoint, endPoint: GeoPoint) {
-        if (!isRoutingEngineReady || hopper == null) return
-
-        thread { // Run routing on a background thread
-            val request = GHRequest(startPoint.latitude, startPoint.longitude, endPoint.latitude, endPoint.longitude)
-                .setProfile("car")
-            val response = hopper!!.route(request)
-
-            runOnUiThread {
-                if (response.hasErrors()) {
-                    Toast.makeText(this, response.errors.first().message, Toast.LENGTH_LONG).show()
-                } else {
-                    val path = response.best
-                    drawRoute(path)
-
-                    val travelTimeMinutes = (path.time / 1000 / 60).toInt()
-                    val distanceKm = (path.distance / 1000).toInt()
-                    val currentBattery = 63 // Placeholder
-                    val plan = AIInsightGenerator.generateUsagePlan(travelTimeMinutes, currentBattery, distanceKm)
-
-                    tvTravelPlan.text = plan
-                    tvTravelPlan.visibility = View.VISIBLE
-                    speak(plan)
+                } catch (e: Exception) {
+                    Log.e("TravelActivity", "Route lookup failed", e)
+                    withContext(Dispatchers.Main) { Toast.makeText(this@TravelActivity, "Route lookup failed. Check internet.", Toast.LENGTH_SHORT).show() }
                 }
             }
         }
     }
 
-    private fun drawRoute(path: com.graphhopper.ResponsePath) {
+    private fun drawRoute(routePoints: List<GeoPoint>) {
         if (currentRoute != null) {
             mapView.overlays.remove(currentRoute)
         }
         val polyline = Polyline()
         polyline.color = Color.BLUE
         polyline.width = 12.0f
-        path.points.forEach { geoPoint ->
-            polyline.addPoint(GeoPoint(geoPoint.lat, geoPoint.lon))
-        }
+        polyline.setPoints(routePoints)
         mapView.overlays.add(polyline)
         mapView.invalidate()
         currentRoute = polyline
@@ -239,15 +180,21 @@ class TravelActivity : AppCompatActivity() {
         }
     }
 
-    // --- Lifecycle Management ---
-    override fun onResume() { super.onResume() ; mapView.onResume() }
-    override fun onPause() { super.onPause() ; mapView.onPause() }
+    override fun onResume() {
+        super.onResume()
+        mapView.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mapView.onPause()
+    }
+
     override fun onDestroy() {
         if (::tts.isInitialized) {
             tts.stop()
             tts.shutdown()
         }
-        hopper?.close()
         super.onDestroy()
     }
 }

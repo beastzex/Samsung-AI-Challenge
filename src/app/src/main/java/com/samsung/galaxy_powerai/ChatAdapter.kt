@@ -12,7 +12,6 @@ class ChatAdapter(private val messages: List<ChatMessage>) : RecyclerView.Adapte
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val messageTextView: TextView = view.findViewById(R.id.tvMessage)
-        // Get a reference to the root layout
         val messageRootLayout: LinearLayout = view.findViewById(R.id.messageRoot)
     }
 
@@ -26,8 +25,6 @@ class ChatAdapter(private val messages: List<ChatMessage>) : RecyclerView.Adapte
         val message = messages[position]
         holder.messageTextView.text = message.text
 
-        // --- THIS IS THE CORRECTED LOGIC ---
-        // We now change the gravity of the root layout, which is a LinearLayout
         if (message.isUser) {
             holder.messageRootLayout.gravity = Gravity.END
             holder.messageTextView.setBackgroundResource(R.drawable.chat_bubble_background_user)

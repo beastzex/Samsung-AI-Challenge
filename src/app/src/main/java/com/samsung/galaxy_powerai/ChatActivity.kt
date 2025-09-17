@@ -32,10 +32,12 @@ class ChatActivity : AppCompatActivity() {
         sendButton = findViewById(R.id.btnSend)
 
         chatAdapter = ChatAdapter(messageList)
-        chatRecyclerView.layoutManager = LinearLayoutManager(this)
+        chatRecyclerView.layoutManager = LinearLayoutManager(this).apply {
+            stackFromEnd = true // Makes the list start from the bottom
+        }
         chatRecyclerView.adapter = chatAdapter
 
-        addMessage("Hello! I am Galaxy PowerAI. Ask me about your battery or for a random fact.", false)
+        addMessage("Hello! I am PowerAI. Ask me about your battery or for a random fact.", false)
 
         sendButton.setOnClickListener {
             handleSendMessage()
@@ -64,7 +66,9 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun updateLastMessage(text: String) {
-        messageList[messageList.size - 1] = ChatMessage(text, false)
-        chatAdapter.notifyItemChanged(messageList.size - 1)
+        if (messageList.isNotEmpty()) {
+            messageList[messageList.size - 1] = ChatMessage(text, false)
+            chatAdapter.notifyItemChanged(messageList.size - 1)
+        }
     }
 }

@@ -8,43 +8,69 @@ import java.util.Locale
 
 object AIInsightGenerator {
 
-    fun getBatteryStatusInsight(health: String, percentage: Int): String {
+    /**
+     * Generates a detailed and contextual insight for the main dashboard.
+     */
+    fun getDetailedBatteryInsight(health: String, percentage: Int, isCharging: Boolean, highUsageApp: String): String {
+        if (isCharging) {
+            return when {
+                percentage >= 95 -> "Insight: Nearing full charge. Unplugging soon will help preserve long-term battery health."
+                else -> "Insight: Charging normally. For best health, try to keep your charge between 20% and 80%."
+            }
+        }
+
+        // If not charging, provide insights based on status
         return when {
-            percentage > 80 && health == "Good" -> "Insight: Your battery is in excellent condition. Keep it up!"
-            percentage < 20 -> "Insight: Battery is low. Consider charging soon to stay connected."
-            else -> "Insight: Your battery is operating normally. You can optimize by managing background apps."
+            percentage < 15 -> "Insight: Battery is critically low. All safety features are now active."
+            percentage < 30 -> "Insight: Battery is low. Consider charging soon to stay connected."
+            "YouTube" in highUsageApp || "Chrome" in highUsageApp -> "Insight: High drain detected. Web browsing or video streaming is using significant power."
+            health == "Overheating" -> "Insight: Your battery is overheating! Please close some apps and let it cool down."
+            else -> "Insight: Your battery is operating normally."
         }
     }
 
-    // --- THIS IS THE UPGRADED FUNCTION ---
     /**
-     * Generates a proactive, multi-tiered travel plan based on trip duration and current battery.
+     * NEW: Generates insights on how to preserve long-term battery health.
      */
-    fun generateUsagePlan(tripDurationMinutes: Int, currentBattery: Int, distanceKm: Int): String {
-        val estimatedDrain = (tripDurationMinutes * 0.5).toInt() // Simplified: 0.5% drain per minute
-        val remainingBattery = currentBattery - estimatedDrain
-        // We define a "safe arrival" as having at least 10% battery left.
-        val buffer = remainingBattery - 10
+    fun getHealthPreservationInsight(health: String, temperature: Double): String {
+        return when {
+            health == "Overheating" || temperature > 40.0 ->
+                "AI Insight: Your battery is overheating! Avoid direct sunlight and close heavy apps. High temperatures can permanently damage battery capacity."
+            health == "Cold" || temperature < 10.0 ->
+                "AI Insight: Your battery is too cold. Performance may be reduced until it warms up. Cold can also affect long-term health."
+            else ->
+                "AI Insight: To maximize your battery's lifespan, try to keep your charge level between 20% and 80% and avoid extreme temperatures."
+        }
+    }
 
-        val plan = StringBuilder("AI Travel Plan ($distanceKm km):\n")
-        plan.append("- Estimated travel time: $tripDurationMinutes minutes.\n")
-        plan.append("- You will arrive with approximately $remainingBattery% battery.\n\n")
+    /**
+     * Generates a proactive, multi-tiered "Battery Budget" travel plan.
+     */
+    fun generateBatteryBudgetPlan(tripDurationMinutes: Int, currentBattery: Int, budget: Int): String {
+        val navDrain = (tripDurationMinutes * 0.25).toInt() // Navigation is more costly
+        val remainingBudget = budget - navDrain
 
-        // Provide tiered recommendations based on the buffer battery
-        when {
-            buffer > 20 -> { // Safe tier
-                plan.append("Recommendation: Your battery is sufficient. For optimal performance, you can enable Battery Saver mode.")
-            }
-            buffer in 5..20 -> { // Caution tier
-                plan.append("Recommendation: Your battery is sufficient, but it's best to be careful. To guarantee your arrival, I recommend:\n- Lowering screen brightness.\n- Turning off Bluetooth if not in use.")
-            }
-            else -> { // Warning tier
-                plan.append("CRITICAL: Battery is very low for this trip! To ensure you arrive safely, you MUST:\n- Lower brightness to minimum.\n- Turn off Bluetooth & Wi-Fi.\n- Close all other apps.")
-            }
+        val plan = StringBuilder("AI Battery Budget Plan:\n")
+        plan.append("- Your budget for this trip is: $budget%\n")
+        plan.append("- Real-time navigation will use approx: $navDrain%\n")
+        plan.append("- Remaining budget for other tasks: $remainingBudget%\n\n")
+
+        if (remainingBudget < 0) {
+            plan.append("WARNING: Your budget is TOO LOW for this trip's navigation! You will need at least ${-remainingBudget}% more battery.")
+        } else {
+            val musicMinutes = (remainingBudget / 0.1).toInt() // Music costs 0.1%/min
+            val socialMinutes = (remainingBudget / 0.4).toInt() // Social media costs 0.4%/min
+            plan.append("With the remaining $remainingBudget%, you can afford:\n")
+            plan.append("- Approx. $musicMinutes minutes of music playback, OR\n")
+            plan.append("- Approx. $socialMinutes minutes of social media.\n")
+            plan.append("- **AVOID** video streaming to stay within budget.")
         }
         return plan.toString()
     }
 
+    /**
+     * This is the HYBRID chatbot function.
+     */
     suspend fun getChatbotResponse(inputText: String, batteryPercentage: Int, prediction: String): String {
         val lowercasedInput = inputText.toLowerCase(Locale.ROOT)
 
@@ -56,13 +82,13 @@ object AIInsightGenerator {
                 "I can help with that. The 'Optimize Apps' button on the main screen will take you to your phone's battery settings."
             }
             "health" in lowercasedInput && "battery" in lowercasedInput -> {
-                "Your battery health is currently reported as 'Good'."
+                "Your battery health is currently reported as 'Good'. For more details and tips, check the 'View Battery Health Details' screen."
             }
             "travel" in lowercasedInput || "navigate" in lowercasedInput -> {
-                "I can help with navigation. Use the 'Travel Guardian' mode from the main screen for battery-efficient routing."
+                "I can help with navigation. Please use the 'Travel Guardian' mode from the main screen."
             }
             "hello" in lowercasedInput || "hi" in lowercasedInput -> {
-                "Hello! I am Galaxy PowerAI, your on-device battery assistant. How can I help you?"
+                "Hello! I am PowerAI, your on-device battery assistant. How can I help you?"
             }
             "battery" in lowercasedInput || "status" in lowercasedInput -> {
                 "Your battery is currently at $batteryPercentage. The AI predicts it will last for approximately $prediction."

@@ -21,6 +21,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Galaxy_PowerAI">
         <activity
+            android:name=".BatteryDetailsActivity"
+            android:exported="false" />
+        <activity
             android:name=".EmergencyActivity"
             android:exported="false" />
         <activity

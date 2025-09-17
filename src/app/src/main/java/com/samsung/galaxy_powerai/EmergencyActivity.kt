@@ -22,14 +22,11 @@ class EmergencyActivity : AppCompatActivity() {
         tvEmergencyBatteryLevel.text = "$batteryLevel% Remaining"
 
         btnCall.setOnClickListener {
-            val intent = Intent(Intent.ACTION_DIAL)
-            startActivity(intent)
+            startActivity(Intent(Intent.ACTION_DIAL))
         }
 
         btnMessages.setOnClickListener {
-            val intent = Intent(Intent.ACTION_MAIN)
-            intent.addCategory(Intent.CATEGORY_APP_MESSAGING)
-            startActivity(intent)
+            startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_MESSAGING))
         }
 
         btnMaps.setOnClickListener {
