@@ -1,4 +1,4 @@
-# Galaxy PowerAI
+# PowerAI
 A proactive, on-device AI guardian for Android that eliminates battery anxiety. Features predictive battery life, offline navigation, and automated safety alerts. A submission for the Samsung EnnovateX 2025 AI Challenge.
 
 
